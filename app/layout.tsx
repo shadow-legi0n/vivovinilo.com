@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/app/components/Navbar";
+import Navbar from "./components/Navbar";
+// AÑADE ESTA LÍNEA PARA IMPORTAR EL FOOTER:
+import Footer from "./components/Footer"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +24,8 @@ export default function RootLayout({
         <div className="flex-1">
           {children}
         </div>
+        {/* AHORA EL FOOTER YA ESTÁ IMPORTADO Y NO DARÁ ERROR */}
+        <Footer />
       </body>
     </html>
   );
