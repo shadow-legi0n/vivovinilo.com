@@ -1,6 +1,5 @@
 import { Palette, Mic, Users, Gift, ArrowRight, Video, Radio, Smartphone, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import Footer from "./components/Footer";
 
 export default function Home() {
   const categorias = [
@@ -15,11 +14,12 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-screen bg-fondo">
+    <main className="min-h-screen bg-fondo w-full">
       {/* 1. HERO CON IMAGEN */}
-      <section className="relative text-white py-24 px-4 overflow-hidden min-h-[500px] flex items-center">
+      <section className="relative text-white py-24 px-4 overflow-hidden min-h-[500px] flex items-center justify-center w-full">
+        {/* El object-cover evita que se deforme o desborde */}
         <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1920&auto=format&fit=crop" alt="Estudio" className="absolute inset-0 w-full h-full object-cover z-0" />
-        <div className="absolute inset-0 bg-gradient-to-r from-oscuro via-oscuro/80 to-transparent z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-oscuro via-oscuro/80 to-transparent z-0 w-full h-full"></div>
         
         <div className="max-w-7xl mx-auto w-full relative z-10">
           <h1 className="text-5xl md:text-7xl font-bold mb-4">Vivo Vinilo</h1>
@@ -196,8 +196,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </main>
   );
 }

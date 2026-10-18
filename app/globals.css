@@ -1,8 +1,24 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-fondo: #F9FAFB;
+  --color-texto: #111827;
+  --color-marca: #D946EF;
+  --color-marca-hover: #C026D3;
+  --color-oscuro: #09090B;
+}
 
 body {
-  background-color: #F9FAFB;
-  color: #111827;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Ocultar barra de desplazamiento en el menú horizontal */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
