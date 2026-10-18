@@ -1,6 +1,6 @@
 import { Palette, Mic, Users, Gift, ArrowRight, Video, Radio, Smartphone, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import Footer from './components/Footer';
+import Footer from "@/app/components/Footer";
 
 export default function Home() {
   const categorias = [
