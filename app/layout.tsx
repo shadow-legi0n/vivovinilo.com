@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer"; 
+import Footer from "./components/Footer";
+import { CartProvider } from "./context/CartContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,14 +18,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <Navbar />
-        <div className="flex-1">
-          {children}
-        </div>
-        {/* AHORA EL FOOTER YA ESTÁ IMPORTADO Y NO DARÁ ERROR */}
-        <Footer />
+    <html lang="es" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${inter.className} min-h-screen flex flex-col`}>
+        <CartProvider>
+          <Navbar />
+          <div className="flex-1">
+            {children}
+          </div>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );
