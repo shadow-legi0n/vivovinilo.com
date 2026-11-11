@@ -7,6 +7,8 @@ export const sitio = {
   // WhatsApp en formato internacional sin "+" ni espacios (ej: 59899123456).
   // Si queda vacío, el link abre WhatsApp y deja elegir el contacto.
   whatsapp: '',
+  // Link de pago de Mercado Pago. Es de monto abierto: quien paga escribe el importe.
+  mercadoPago: 'https://link.mercadopago.com.uy/vivovinilo',
   instagram: '',
   youtube: '',
 };

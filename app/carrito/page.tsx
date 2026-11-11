@@ -5,16 +5,20 @@ import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import Foto from '../components/Foto';
 import { productos } from '../lib/catalogo';
-import { Trash2, Plus, Minus, ShieldCheck, Truck, CreditCard, ShoppingBag, CheckCircle } from 'lucide-react';
+import { sitio } from '../lib/sitio';
+import { calcularEnvio, MONTO_ENVIO_GRATIS, type ZonaEnvio } from '../lib/envio';
+import { Trash2, Plus, Minus, ShieldCheck, Truck, CreditCard, ShoppingBag, CheckCircle, ExternalLink } from 'lucide-react';
 
 export default function CarritoPage() {
   const { items, agregarAlCarrito, eliminarDelCarrito, actualizarCantidad, vaciarCarrito, subtotal } = useCart();
-  const [zonaEnvio, setZonaEnvio] = useState<'montevideo' | 'interior' | 'retiro'>('montevideo');
+  const [zonaEnvio, setZonaEnvio] = useState<ZonaEnvio>('montevideo');
   const [metodoPago, setMetodoPago] = useState<'mercadopago' | 'transferencia' | 'redes'>('mercadopago');
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
+  const [pagando, setPagando] = useState(false);
+  const [errorPago, setErrorPago] = useState('');
 
   const nombresPago = {
     mercadopago: 'Mercado Pago',
@@ -22,17 +26,8 @@ export default function CarritoPage() {
     redes: 'Abitab / Redpagos',
   };
 
-  const montoEnvioGratis = 3500;
-  const tieneEnvioGratis = zonaEnvio === 'montevideo' && subtotal >= montoEnvioGratis;
-  
-  const costoEnvio =
-    zonaEnvio === 'retiro'
-      ? 0
-      : zonaEnvio === 'montevideo'
-      ? tieneEnvioGratis
-        ? 0
-        : 220
-      : 290;
+  const montoEnvioGratis = MONTO_ENVIO_GRATIS;
+  const costoEnvio = calcularEnvio(zonaEnvio, subtotal);
 
   const totalFinal = subtotal + costoEnvio;
   const faltaParaEnvioGratis = Math.max(0, montoEnvioGratis - subtotal);
@@ -46,9 +41,50 @@ export default function CarritoPage() {
       );
   };
 
-  const finalizarCompra = (e: React.FormEvent) => {
+  // Plan B, solo si el servidor todavía no tiene el token de Mercado Pago: el link de
+  // pago no acepta el monto por la URL, así que se copia el total y el cliente lo pega.
+  const irAMercadoPago = () => {
+    navigator.clipboard?.writeText(String(totalFinal)).catch(() => {});
+    window.open(sitio.mercadoPago, '_blank', 'noopener');
+  };
+
+  const finalizarCompra = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPedidoConfirmado(true);
+    if (metodoPago !== 'mercadopago') {
+      setPedidoConfirmado(true);
+      return;
+    }
+
+    // Mercado Pago: el servidor arma el pago por el total exacto y devuelve a dónde ir.
+    // Solo se mandan ids y cantidades; los precios los pone el servidor.
+    setPagando(true);
+    setErrorPago('');
+    try {
+      const respuesta = await fetch('/api/pago', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(({ id, cantidad }) => ({ id, cantidad })),
+          zonaEnvio,
+          nombre,
+          telefono,
+          direccion,
+        }),
+      });
+      const datos = await respuesta.json();
+      if (respuesta.ok && datos.url) {
+        window.location.assign(datos.url);
+        return; // se queda en "Conectando..." mientras carga Mercado Pago
+      }
+      if (respuesta.status === 503) {
+        setPedidoConfirmado(true); // sin token configurado: plan B con el link de pago
+      } else {
+        setErrorPago(datos.error ?? 'No pudimos iniciar el pago. Probá de nuevo.');
+      }
+    } catch {
+      setErrorPago('No pudimos conectar con el servidor. Revisá tu conexión y probá de nuevo.');
+    }
+    setPagando(false);
   };
 
   return (
@@ -64,6 +100,22 @@ export default function CarritoPage() {
               Gracias <strong>{nombre || 'por tu compra'}</strong>. Elegiste abonar mediante{' '}
               <strong>{nombresPago[metodoPago]}</strong> por un total de <strong>${totalFinal} UYU</strong>.
             </p>
+            {metodoPago === 'mercadopago' && (
+              <div className="bg-fondo border border-gray-100 rounded-2xl p-6 mb-6">
+                <p className="text-sm text-gray-600 mb-1">Monto a ingresar en Mercado Pago</p>
+                <p className="text-4xl font-bold text-texto mb-4">${totalFinal}</p>
+                <button
+                  onClick={irAMercadoPago}
+                  className="inline-flex items-center gap-2 bg-[#009EE3] hover:bg-[#0087c2] text-white px-6 py-3 rounded-full font-semibold transition-colors cursor-pointer"
+                >
+                  Pagar con Mercado Pago <ExternalLink className="w-4 h-4" />
+                </button>
+                <p className="text-xs text-gray-500 mt-3">
+                  Se abre el link de pago de Vivo Vinilo y el monto queda copiado: pegalo o escribilo donde dice
+                  &quot;Ingresá el monto a pagar&quot;.
+                </p>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => {
@@ -298,11 +350,18 @@ export default function CarritoPage() {
                 </div>
               </div>
 
+              {errorPago && (
+                <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                  {errorPago}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-marca hover:bg-marca-hover text-white py-3.5 rounded-full font-semibold transition-colors shadow-lg cursor-pointer"
+                disabled={pagando}
+                className="w-full bg-marca hover:bg-marca-hover text-white py-3.5 rounded-full font-semibold transition-colors shadow-lg cursor-pointer disabled:opacity-60 disabled:cursor-wait"
               >
-                Confirmar y Pagar
+                {pagando ? 'Conectando con Mercado Pago...' : 'Confirmar y Pagar'}
               </button>
             </form>
           </div>
