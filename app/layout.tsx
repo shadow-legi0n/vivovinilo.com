@@ -8,7 +8,8 @@ import { CartProvider } from "./context/CartContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Vivo Vinilo",
+  // Cada página define su título y acá se le agrega el nombre del sitio.
+  title: { default: "Vivo Vinilo", template: "%s | Vivo Vinilo" },
   description: "Donde las ideas cobran vida",
 };
 

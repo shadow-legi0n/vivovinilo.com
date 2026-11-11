@@ -1,6 +1,7 @@
 'use client'; 
 
 import Link from 'next/link';
+import { navegacion, linkWhatsApp } from '../lib/sitio';
 import { Camera, PlayCircle, ArrowUp, MessageCircle } from 'lucide-react'; 
 
 export default function Footer() {
@@ -22,22 +23,19 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold text-white mb-4">Navegación</h3>
           <div className="flex flex-col gap-3 text-sm text-gray-400">
-            <Link href="/" className="hover:text-marca transition-colors">Inicio</Link>
-            <Link href="/lab" className="hover:text-marca transition-colors">LAB</Link>
-            <Link href="/estudio" className="hover:text-marca transition-colors">ESTUDIO</Link>
-            <Link href="/empresas" className="hover:text-marca transition-colors">Empresas y eventos</Link>
-            <Link href="/experiencias" className="hover:text-marca transition-colors">Regalos con experiencias</Link>
-            <Link href="/contacto" className="hover:text-marca transition-colors">Contacto y presupuestos</Link>
+            {navegacion.map((item) => (
+              <Link key={item.href} href={item.href} className="hover:text-marca transition-colors">{item.nombre}</Link>
+            ))}
           </div>
         </div>
 
         {/* Columna 3: Atención y Redes (Ocupa el resto) */}
         <div className="md:col-span-2">
           <h3 className="font-semibold text-white mb-4">Atención</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-6 cursor-pointer hover:text-marca transition-colors">
-             <MessageCircle className="w-5 h-5" /> 
-            <p>Consultas por WhatsApp</p>
-          </div>
+          <a href={linkWhatsApp()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-gray-400 mb-6 hover:text-marca transition-colors">
+            <MessageCircle className="w-5 h-5" />
+            Consultas por WhatsApp
+          </a>
           <div className="flex gap-4 text-gray-400">
             {/* Íconos genéricos que representan redes */}
             <a href="#" className="hover:text-marca transition-colors border border-gray-600 rounded-full p-2 flex items-center justify-center">
@@ -52,7 +50,7 @@ export default function Footer() {
 
       {/* Botón Volver Arriba */}
       <div className="absolute right-8 bottom-24 hidden md:block">
-         <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="bg-white text-oscuro p-2 rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center">
+         <button aria-label="Volver arriba" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="bg-white text-oscuro p-2 rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center">
             <ArrowUp className="w-5 h-5" />
          </button>
       </div>

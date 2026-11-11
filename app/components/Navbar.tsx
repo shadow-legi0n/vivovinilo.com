@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Search, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { navegacion } from '../lib/sitio';
 
 export default function Navbar() {
   const { totalItems } = useCart();
@@ -25,7 +26,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6">
-          <Link href="/carrito" className="relative hover:text-marca transition-colors">
+          <Link href="/carrito" aria-label="Carrito" className="relative hover:text-marca transition-colors">
             <ShoppingCart className="w-6 h-6" />
             {totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-marca text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -33,7 +34,7 @@ export default function Navbar() {
               </span>
             )}
           </Link>
-          <Link href="/login" className="hover:text-marca transition-colors">
+          <Link href="/login" aria-label="Mi cuenta" className="hover:text-marca transition-colors">
             <User className="w-6 h-6" />
           </Link>
         </div>
@@ -41,12 +42,11 @@ export default function Navbar() {
 
       <nav className="max-w-7xl mx-auto px-4 md:px-8">
         <ul className="flex items-center gap-8 h-12 text-sm font-medium overflow-x-auto whitespace-nowrap scrollbar-hide">
-          <li><Link href="/" className="hover:text-marca transition-colors">Inicio</Link></li>
-          <li><Link href="/lab" className="hover:text-marca transition-colors">LAB</Link></li>
-          <li><Link href="/estudio" className="hover:text-marca transition-colors">ESTUDIO</Link></li>
-          <li><Link href="/empresas" className="hover:text-marca transition-colors">Empresas y eventos</Link></li>
-          <li><Link href="/experiencias" className="hover:text-marca transition-colors">Regalos con experiencias</Link></li>
-          <li><Link href="/contacto" className="hover:text-marca transition-colors">Contacto y presupuestos</Link></li>
+          {navegacion.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="hover:text-marca transition-colors">{item.nombre}</Link>
+            </li>
+          ))}
         </ul>
       </nav>
     </header>

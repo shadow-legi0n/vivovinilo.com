@@ -1,18 +1,8 @@
 import { Palette, Mic, Users, Gift, ArrowRight, Video, Radio, Smartphone, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { categorias } from './lib/catalogo';
 
 export default function Home() {
-  const categorias = [
-    { nombre: "Sublimación", href: "/lab", img: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Tazas, termos y mates", href: "/lab", img: "https://images.unsplash.com/photo-1517254456976-ee8f02088d43?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Indumentaria", href: "/lab", img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Vinilo y DTF", href: "/lab", img: "https://images.unsplash.com/photo-1620012253295-c15bc3e6554c?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Impresión 3D", href: "/lab", img: "https://images.unsplash.com/photo-1615962122149-a417df85dc74?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Regalos y souvenirs", href: "/lab", img: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Personalizados", href: "/lab", img: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=400&auto=format&fit=crop" },
-    { nombre: "Diseños especiales", href: "/lab", img: "https://images.unsplash.com/photo-1561016444-14fd547ea40f?q=80&w=400&auto=format&fit=crop" },
-  ];
-
   return (
     <main className="min-h-screen bg-fondo w-full">
       {/* 1. HERO CON IMAGEN */}
@@ -81,8 +71,8 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {categorias.map((cat, i) => (
-            <Link key={i} href={cat.href} className="group flex flex-col items-center">
+          {categorias.map((cat) => (
+            <Link key={cat.slug} href={`/lab/${cat.slug}`} className="group flex flex-col items-center">
               <div className="w-full bg-white rounded-2xl aspect-[4/3] flex items-center justify-center border border-gray-100 mb-3 shadow-sm group-hover:shadow-md transition-all overflow-hidden p-4">
                 <img src={cat.img} alt={cat.nombre} className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500" />
               </div>
