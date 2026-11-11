@@ -14,6 +14,12 @@ export default function CarritoPage() {
   const [direccion, setDireccion] = useState('');
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
 
+  const nombresPago = {
+    mercadopago: 'Mercado Pago',
+    transferencia: 'transferencia bancaria',
+    redes: 'Abitab / Redpagos',
+  };
+
   const montoEnvioGratis = 3500;
   const tieneEnvioGratis = zonaEnvio === 'montevideo' && subtotal >= montoEnvioGratis;
   
@@ -72,7 +78,7 @@ export default function CarritoPage() {
             <h2 className="text-2xl font-bold text-texto mb-2">¡Pedido registrado con éxito!</h2>
             <p className="text-gray-600 mb-6">
               Gracias <strong>{nombre || 'por tu compra'}</strong>. Elegiste abonar mediante{' '}
-              <strong className="uppercase">{metodoPago}</strong> por un total de <strong>${totalFinal} UYU</strong>.
+              <strong>{nombresPago[metodoPago]}</strong> por un total de <strong>${totalFinal} UYU</strong>.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -105,7 +111,7 @@ export default function CarritoPage() {
                 Cargar productos de prueba
               </button>
               <Link
-                href="/"
+                href="/lab"
                 className="border border-gray-300 hover:border-oscuro text-texto px-6 py-3 rounded-full font-medium transition-colors"
               >
                 Explorar catálogo
