@@ -6,6 +6,10 @@ import PageHeader from '../../components/PageHeader';
 import ProductCard from '../../components/ProductCard';
 import { categorias, getCategoria, getProductosPorCategoria } from '../../lib/catalogo';
 
+// La página lee el slug de la URL antes de mostrar nada. Como todas las categorías
+// ya se generan en el build, no hace falta un estado de carga: se le avisa a Next.
+export const instant = false;
+
 // Le dice a Next qué categorías existen para generar cada página en el build.
 export function generateStaticParams() {
   return categorias.map((c) => ({ categoria: c.slug }));
