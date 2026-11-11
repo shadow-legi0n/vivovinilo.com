@@ -3,14 +3,14 @@
 export const sitio = {
   nombre: 'Vivo Vinilo',
   eslogan: 'Donde las ideas cobran vida',
-  // TODO: completar con los datos reales.
-  // WhatsApp en formato internacional sin "+" ni espacios (ej: 59899123456).
-  // Si queda vacío, el link abre WhatsApp y deja elegir el contacto.
-  whatsapp: '',
+  // WhatsApp en formato internacional sin "+" ni espacios; el otro es para mostrar.
+  whatsapp: '59892557767',
+  telefono: '+598 92 557 767',
+  email: 'vivovinilouruguay@gmail.com',
   // Link de pago de Mercado Pago. Es de monto abierto: quien paga escribe el importe.
   mercadoPago: 'https://link.mercadopago.com.uy/vivovinilo',
-  instagram: '',
-  youtube: '',
+  instagram: 'https://www.instagram.com/vivovinilouy',
+  facebook: 'https://www.facebook.com/people/Vivo-Vinilo/61596046565795/',
 };
 
 export const navegacion = [

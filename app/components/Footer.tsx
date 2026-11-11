@@ -1,8 +1,9 @@
 'use client'; 
 
 import Link from 'next/link';
-import { navegacion, linkWhatsApp } from '../lib/sitio';
-import { Camera, PlayCircle, ArrowUp, MessageCircle } from 'lucide-react'; 
+import { navegacion, linkWhatsApp, sitio } from '../lib/sitio';
+import { ArrowUp, Mail } from 'lucide-react';
+import Redes, { IconoWhatsApp } from './Redes';
 
 export default function Footer() {
   return (
@@ -32,18 +33,18 @@ export default function Footer() {
         {/* Columna 3: Atención y Redes (Ocupa el resto) */}
         <div className="md:col-span-2">
           <h3 className="font-semibold text-white mb-4">Atención</h3>
-          <a href={linkWhatsApp()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-gray-400 mb-6 hover:text-marca transition-colors">
-            <MessageCircle className="w-5 h-5" />
-            Consultas por WhatsApp
-          </a>
-          <div className="flex gap-4 text-gray-400">
-            {/* Íconos genéricos que representan redes */}
-            <a href="#" className="hover:text-marca transition-colors border border-gray-600 rounded-full p-2 flex items-center justify-center">
-              <Camera className="w-5 h-5" /> {/* Representa Instagram */}
+          <div className="flex flex-col items-start gap-3 text-sm text-gray-400 mb-6">
+            <a href={linkWhatsApp()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-marca transition-colors">
+              <IconoWhatsApp className="w-5 h-5" />
+              Consultas por WhatsApp: {sitio.telefono}
             </a>
-            <a href="#" className="hover:text-marca transition-colors border border-gray-600 rounded-full p-2 flex items-center justify-center">
-              <PlayCircle className="w-5 h-5" /> {/* Representa YouTube */}
+            <a href={`mailto:${sitio.email}`} className="inline-flex items-center gap-2 hover:text-marca transition-colors">
+              <Mail className="w-5 h-5" />
+              {sitio.email}
             </a>
+          </div>
+          <div className="text-gray-400">
+            <Redes />
           </div>
         </div>
       </div>
