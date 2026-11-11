@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import Foto from '../components/Foto';
+import { productos } from '../lib/catalogo';
 import { Trash2, Plus, Minus, ShieldCheck, Truck, CreditCard, ShoppingBag, CheckCircle } from 'lucide-react';
 
 export default function CarritoPage() {
@@ -36,30 +38,12 @@ export default function CarritoPage() {
   const faltaParaEnvioGratis = Math.max(0, montoEnvioGratis - subtotal);
 
   const cargarProductosDemo = () => {
-    agregarAlCarrito({
-      id: 'taza-vinilo-1',
-      nombre: 'Taza Personalizada + Código QR Musical',
-      precio: 450,
-      cantidad: 2,
-      detalle: 'Diseño personalizado a elección',
-      imagen: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=300&auto=format&fit=crop',
-    });
-    agregarAlCarrito({
-      id: 'termo-perso-2',
-      nombre: 'Termo Acero Inoxidable Grabado',
-      precio: 1450,
-      cantidad: 1,
-      detalle: 'Grabado láser personalizado',
-      imagen: 'https://images.unsplash.com/photo-1517254456976-ee8f02088d43?q=80&w=300&auto=format&fit=crop',
-    });
-    agregarAlCarrito({
-      id: 'remera-dtf-3',
-      nombre: 'Remera Algodón Premium Estampa DTF',
-      precio: 890,
-      cantidad: 1,
-      detalle: 'Talle L - Negro',
-      imagen: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=300&auto=format&fit=crop',
-    });
+    productos
+      .filter((p) => p.precio !== null)
+      .slice(0, 3)
+      .forEach((p) =>
+        agregarAlCarrito({ id: p.id, nombre: p.nombre, precio: p.precio ?? 0, cantidad: 1, detalle: p.detalle, imagen: p.imagen })
+      );
   };
 
   const finalizarCompra = (e: React.FormEvent) => {
@@ -147,7 +131,7 @@ export default function CarritoPage() {
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 divide-y divide-gray-100">
                 {items.map((item) => (
                   <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row items-center gap-4">
-                    <img src={item.imagen} alt={item.nombre} className="w-20 h-20 rounded-xl object-cover border border-gray-100" />
+                    <Foto src={item.imagen} alt={item.nombre} className="w-20 h-20 rounded-xl border border-gray-100" />
                     <div className="flex-1 text-center sm:text-left">
                       <h3 className="font-semibold text-texto">{item.nombre}</h3>
                       {item.detalle && <p className="text-xs text-gray-500">{item.detalle}</p>}

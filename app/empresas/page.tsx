@@ -40,7 +40,7 @@ export default function EmpresasPage() {
           </div>
           <div className="h-56 md:h-auto rounded-2xl overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32b7?q=80&w=800&auto=format&fit=crop" alt="Merchandising para empresas" className="w-full h-full object-cover" />
+            <img src="/productos/bolsas.jpg" alt="Bolsas estampadas con el logo de Vivo Vinilo" className="w-full h-full object-cover" />
           </div>
         </div>
       </section>

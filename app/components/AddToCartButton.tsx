@@ -5,7 +5,7 @@ import { Check, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import type { Producto } from '../lib/catalogo';
 
-export default function AddToCartButton({ producto }: { producto: Producto }) {
+export default function AddToCartButton({ producto, precio }: { producto: Producto; precio: number }) {
   const { agregarAlCarrito } = useCart();
   const [agregado, setAgregado] = useState(false);
 
@@ -13,7 +13,7 @@ export default function AddToCartButton({ producto }: { producto: Producto }) {
     agregarAlCarrito({
       id: producto.id,
       nombre: producto.nombre,
-      precio: producto.precio,
+      precio,
       cantidad: 1,
       detalle: producto.detalle,
       imagen: producto.imagen,

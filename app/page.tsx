@@ -1,6 +1,7 @@
 import { Palette, Mic, Users, Gift, ArrowRight, Video, Radio, Smartphone, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { categorias } from './lib/catalogo';
+import Foto from './components/Foto';
 
 export default function Home() {
   return (
@@ -74,7 +75,7 @@ export default function Home() {
           {categorias.map((cat) => (
             <Link key={cat.slug} href={`/lab/${cat.slug}`} className="group flex flex-col items-center">
               <div className="w-full bg-white rounded-2xl aspect-[4/3] flex items-center justify-center border border-gray-100 mb-3 shadow-sm group-hover:shadow-md transition-all overflow-hidden p-4">
-                <img src={cat.img} alt={cat.nombre} className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500" />
+                <Foto src={cat.img} alt={cat.nombre} className="w-full h-full rounded-xl group-hover:scale-105 transition-transform duration-500" />
               </div>
               <h3 className="text-sm font-medium text-center text-texto group-hover:text-marca transition-colors">{cat.nombre}</h3>
             </Link>
@@ -128,7 +129,7 @@ export default function Home() {
           </div>
 
           <div className="md:w-1/3 h-48 md:h-auto rounded-2xl overflow-hidden relative">
-             <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32b7?q=80&w=600&auto=format&fit=crop" alt="Merchandising" className="w-full h-full object-cover" />
+             <img src="/productos/bolsas.jpg" alt="Bolsas estampadas con el logo de Vivo Vinilo" className="w-full h-full object-cover" />
           </div>
         </div>
       </section>
@@ -175,8 +176,8 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 md:px-8 mb-16">
         <div className="bg-white border border-gray-100 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between shadow-sm gap-8">
           <div className="md:w-1/2">
-            <h2 className="text-3xl font-bold mb-4 text-texto">Tu idea, nuestro trabajo</h2>
-            <p className="text-gray-600 mb-6">Personalizá, regalá, compartí. En Vivo Vinilo, cada proyecto es único.</p>
+            <h2 className="text-3xl font-bold mb-4 text-texto">Traé tu idea 💡</h2>
+            <p className="text-gray-600 mb-6">Juntos la llevamos a cabo. En Vivo Vinilo, cada proyecto es único.</p>
             <Link href="/contacto" className="inline-flex items-center bg-oscuro text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-black transition-colors">
               Contactanos <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
