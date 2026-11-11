@@ -13,6 +13,9 @@ export const sitio = {
   facebook: 'https://www.facebook.com/people/Vivo-Vinilo/61596046565795/',
 };
 
+// Dónde guarda el navegador el número del último pedido (para el mensaje de WhatsApp).
+export const CLAVE_ULTIMO_PEDIDO = 'ultimo_pedido_vivovinilo';
+
 export const navegacion = [
   { nombre: 'Inicio', href: '/' },
   { nombre: 'LAB', href: '/lab' },

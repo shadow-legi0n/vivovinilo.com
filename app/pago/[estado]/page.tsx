@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CheckCircle, Clock, XCircle } from 'lucide-react';
-import VaciarCarrito from './VaciarCarrito';
+import DespuesDelPago from './DespuesDelPago';
 
 // Mercado Pago devuelve al cliente a /pago/aprobado, /pago/pendiente o /pago/rechazado.
 const estados = {
@@ -10,7 +10,7 @@ const estados = {
     icono: CheckCircle,
     color: 'text-green-500',
     titulo: '¡Pago aprobado!',
-    texto: 'Recibimos tu pago. Nos vamos a comunicar por WhatsApp para coordinar la entrega.',
+    texto: 'Recibimos tu pago. Escribinos por WhatsApp para coordinar el envío o el retiro.',
   },
   pendiente: {
     icono: Clock,
@@ -45,12 +45,12 @@ export default async function PagoPage({ params }: PageProps<'/pago/[estado]'>) 
 
   return (
     <main className="bg-fondo w-full">
-      {estado === 'aprobado' && <VaciarCarrito />}
       <section className="max-w-2xl mx-auto px-4 md:px-8 py-20">
         <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 text-center">
           <Icono className={`w-16 h-16 mx-auto mb-4 ${color}`} />
           <h1 className="text-2xl font-bold text-texto mb-2">{titulo}</h1>
           <p className="text-gray-600 mb-8">{texto}</p>
+          {estado !== 'rechazado' && <DespuesDelPago aprobado={estado === 'aprobado'} />}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {estado === 'rechazado' && (
               <Link href="/carrito" className="bg-marca hover:bg-marca-hover text-white px-6 py-3 rounded-full font-medium transition-colors">

@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import Foto from '../components/Foto';
+import { IconoWhatsApp } from '../components/Redes';
 import { productos } from '../lib/catalogo';
-import { sitio } from '../lib/sitio';
+import { sitio, linkWhatsApp, CLAVE_ULTIMO_PEDIDO } from '../lib/sitio';
 import { calcularEnvio, MONTO_ENVIO_GRATIS, type ZonaEnvio } from '../lib/envio';
 import { Trash2, Plus, Minus, ShieldCheck, Truck, CreditCard, ShoppingBag, CheckCircle, ExternalLink } from 'lucide-react';
 
@@ -18,6 +19,7 @@ export default function CarritoPage() {
   const [direccion, setDireccion] = useState('');
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
   const [pagando, setPagando] = useState(false);
+  const [numeroPedido, setNumeroPedido] = useState<number | null>(null);
   const [errorPago, setErrorPago] = useState('');
 
   const nombresPago = {
@@ -48,44 +50,59 @@ export default function CarritoPage() {
     window.open(sitio.mercadoPago, '_blank', 'noopener');
   };
 
+  // Al confirmar, el servidor guarda el pedido y calcula el total (del navegador solo
+  // salen ids y cantidades). Si se paga con Mercado Pago devuelve a dónde ir a pagar.
   const finalizarCompra = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (metodoPago !== 'mercadopago') {
-      setPedidoConfirmado(true);
-      return;
-    }
-
-    // Mercado Pago: el servidor arma el pago por el total exacto y devuelve a dónde ir.
-    // Solo se mandan ids y cantidades; los precios los pone el servidor.
     setPagando(true);
     setErrorPago('');
     try {
-      const respuesta = await fetch('/api/pago', {
+      const respuesta = await fetch('/api/pedidos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map(({ id, cantidad }) => ({ id, cantidad })),
           zonaEnvio,
+          metodoPago,
           nombre,
           telefono,
           direccion,
         }),
       });
       const datos = await respuesta.json();
+      if (datos.pedido) {
+        setNumeroPedido(datos.pedido);
+        try {
+          localStorage.setItem(CLAVE_ULTIMO_PEDIDO, String(datos.pedido)); // lo usa la página de pago aprobado
+        } catch {
+          // sin localStorage solo se pierde el número en el mensaje de WhatsApp
+        }
+      }
       if (respuesta.ok && datos.url) {
         window.location.assign(datos.url);
-        return; // se queda en "Conectando..." mientras carga Mercado Pago
+        return; // se queda en "Procesando..." mientras carga Mercado Pago
       }
-      if (respuesta.status === 503) {
-        setPedidoConfirmado(true); // sin token configurado: plan B con el link de pago
+      if (respuesta.ok) {
+        setPedidoConfirmado(true);
       } else {
-        setErrorPago(datos.error ?? 'No pudimos iniciar el pago. Probá de nuevo.');
+        setErrorPago(datos.error ?? 'No pudimos registrar el pedido. Probá de nuevo.');
       }
     } catch {
       setErrorPago('No pudimos conectar con el servidor. Revisá tu conexión y probá de nuevo.');
     }
     setPagando(false);
   };
+
+  // Resumen del pedido para mandar por WhatsApp. Es también la red de seguridad:
+  // si la base de datos no respondió, el pedido igual llega por este mensaje.
+  const mensajePedido = [
+    `Hola, soy ${nombre}. Hice ${numeroPedido ? `el pedido #${numeroPedido}` : 'un pedido'} en la web:`,
+    ...items.map((i) => `- ${i.cantidad} x ${i.nombre} ($${i.precio * i.cantidad})`),
+    `Envío: ${costoEnvio === 0 ? 'gratis' : `$${costoEnvio}`}`,
+    `Total: $${totalFinal}`,
+    zonaEnvio === 'retiro' ? 'Entrega: retiro en Vivo Vinilo' : `Entrega: ${direccion} (${zonaEnvio === 'montevideo' ? 'Montevideo' : 'interior'})`,
+    `Pago: ${nombresPago[metodoPago]}`,
+  ].join('\n');
 
   return (
     <main className="min-h-screen bg-fondo py-12 px-4 md:px-8">
@@ -95,7 +112,9 @@ export default function CarritoPage() {
         {pedidoConfirmado ? (
           <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 text-center max-w-2xl mx-auto mb-16">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-texto mb-2">¡Pedido registrado con éxito!</h2>
+            <h2 className="text-2xl font-bold text-texto mb-2">
+              {numeroPedido ? `¡Pedido #${numeroPedido} registrado!` : '¡Ya casi! Envianos tu pedido'}
+            </h2>
             <p className="text-gray-600 mb-6">
               Gracias <strong>{nombre || 'por tu compra'}</strong>. Elegiste abonar mediante{' '}
               <strong>{nombresPago[metodoPago]}</strong> por un total de <strong>${totalFinal} UYU</strong>.
@@ -116,10 +135,24 @@ export default function CarritoPage() {
                 </p>
               </div>
             )}
+            <a
+              href={linkWhatsApp(mensajePedido)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1fb857] text-white px-6 py-3 rounded-full font-semibold transition-colors mb-2"
+            >
+              <IconoWhatsApp className="w-5 h-5" /> Enviar pedido por WhatsApp
+            </a>
+            <p className="text-xs text-gray-500 mb-6">
+              {numeroPedido
+                ? 'Mandanos el pedido por WhatsApp para coordinar la entrega y enviar el comprobante.'
+                : 'Mandanos el pedido por WhatsApp para que lo recibamos y coordinemos la entrega.'}
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => {
                   vaciarCarrito();
+                  setNumeroPedido(null);
                   setPedidoConfirmado(false);
                 }}
                 className="bg-marca hover:bg-marca-hover text-white px-6 py-3 rounded-full font-medium transition-colors"
@@ -361,7 +394,7 @@ export default function CarritoPage() {
                 disabled={pagando}
                 className="w-full bg-marca hover:bg-marca-hover text-white py-3.5 rounded-full font-semibold transition-colors shadow-lg cursor-pointer disabled:opacity-60 disabled:cursor-wait"
               >
-                {pagando ? 'Conectando con Mercado Pago...' : 'Confirmar y Pagar'}
+                {pagando ? 'Procesando...' : 'Confirmar y Pagar'}
               </button>
             </form>
           </div>
