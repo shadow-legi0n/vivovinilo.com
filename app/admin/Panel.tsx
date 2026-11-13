@@ -225,6 +225,7 @@ export default function Panel() {
                   <dl className="space-y-1">
                     <div><dt className="inline text-gray-500">Cliente: </dt><dd className="inline font-semibold text-texto">{p.nombre}</dd></div>
                     <div><dt className="inline text-gray-500">Celular: </dt><dd className="inline text-texto">{p.telefono}</dd></div>
+                    {p.email && <div><dt className="inline text-gray-500">Mail: </dt><dd className="inline text-texto">{p.email}</dd></div>}
                     <div><dt className="inline text-gray-500">Entrega: </dt><dd className="inline text-texto">{ENTREGAS[p.entrega]}</dd></div>
                     {p.direccion && <div><dt className="inline text-gray-500">Dirección: </dt><dd className="inline text-texto">{p.direccion}</dd></div>}
                     <div><dt className="inline text-gray-500">Pago: </dt><dd className="inline text-texto">{PAGOS[p.metodoPago]}</dd></div>

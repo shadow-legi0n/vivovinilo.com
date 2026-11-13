@@ -32,7 +32,7 @@ export async function crearPreferencia(pedido: NuevoPedido, pedidoId: number | n
     method: 'POST',
     body: JSON.stringify({
       items,
-      payer: { name: pedido.nombre },
+      payer: { name: pedido.nombre, email: pedido.email },
       metadata: { nombre: pedido.nombre, telefono: pedido.telefono, direccion: pedido.direccion, entrega: pedido.entrega },
       statement_descriptor: 'VIVO VINILO',
       // Con esto Mercado Pago nos dice a qué pedido corresponde cada pago.

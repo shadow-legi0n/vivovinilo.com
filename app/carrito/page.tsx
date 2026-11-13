@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import Foto from '../components/Foto';
@@ -17,10 +17,34 @@ export default function CarritoPage() {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
+  const [email, setEmail] = useState('');
+  const [clave, setClave] = useState('');
+  // Mail de la cuenta si ya hay sesión abierta: en ese caso no se pide mail ni contraseña.
+  const [sesion, setSesion] = useState<string | null>(null);
+  const [cuenta, setCuenta] = useState<'creada' | 'existente' | null>(null);
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
   const [pagando, setPagando] = useState(false);
   const [numeroPedido, setNumeroPedido] = useState<number | null>(null);
   const [errorPago, setErrorPago] = useState('');
+
+  // Con sesión abierta se completa el formulario con los datos de la última compra,
+  // sin pisar lo que la persona ya haya escrito.
+  useEffect(() => {
+    let vigente = true;
+    fetch('/api/cuenta', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((datos) => {
+        if (!vigente || !datos?.cliente) return;
+        setSesion(datos.cliente.email);
+        setNombre((actual) => actual || datos.cliente.nombre);
+        setTelefono((actual) => actual || datos.cliente.telefono);
+        setDireccion((actual) => actual || datos.cliente.direccion);
+      })
+      .catch(() => {}); // sin sesión o sin conexión: se compra con mail y contraseña
+    return () => {
+      vigente = false;
+    };
+  }, []);
 
   const nombresPago = {
     mercadopago: 'Mercado Pago',
@@ -66,7 +90,9 @@ export default function CarritoPage() {
           metodoPago,
           nombre,
           telefono,
-          direccion,
+          direccion: zonaEnvio === 'retiro' ? '' : direccion,
+          email: sesion ?? email,
+          clave,
         }),
       });
       const datos = await respuesta.json();
@@ -77,6 +103,10 @@ export default function CarritoPage() {
         } catch {
           // sin localStorage solo se pierde el número en el mensaje de WhatsApp
         }
+      }
+      if (respuesta.ok) {
+        setCuenta(datos.cuenta ?? null);
+        setClave(''); // la contraseña no queda en memoria después de usarla
       }
       if (respuesta.ok && datos.url) {
         window.location.assign(datos.url);
@@ -135,6 +165,16 @@ export default function CarritoPage() {
                 </p>
               </div>
             )}
+            {cuenta && (
+              <p className="text-sm text-gray-700 bg-fondo border border-gray-100 rounded-2xl px-4 py-3 mb-6">
+                {cuenta === 'creada' ? (
+                  <>Creamos tu cuenta con <strong>{sesion ?? email}</strong>. </>
+                ) : (
+                  <>El pedido quedó en tu cuenta <strong>{sesion ?? email}</strong>. </>
+                )}
+                <Link href="/cuenta" className="text-marca font-medium hover:underline">Ver mis pedidos</Link>
+              </p>
+            )}
             <a
               href={linkWhatsApp(mensajePedido)}
               target="_blank"
@@ -154,6 +194,8 @@ export default function CarritoPage() {
                   vaciarCarrito();
                   setNumeroPedido(null);
                   setPedidoConfirmado(false);
+                  if (cuenta) setSesion((actual) => actual ?? email); // la compra dejó la sesión abierta
+                  setCuenta(null);
                 }}
                 className="bg-marca hover:bg-marca-hover text-white px-6 py-3 rounded-full font-medium transition-colors"
               >
@@ -258,12 +300,16 @@ export default function CarritoPage() {
             <form onSubmit={finalizarCompra} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 h-fit space-y-6">
               <h2 className="text-xl font-bold text-texto border-b border-gray-100 pb-4">Datos de envío y pago</h2>
 
-              {/* Datos del cliente */}
+              {/* Datos del cliente: todos obligatorios (la dirección solo si hay envío) */}
               <div className="space-y-3">
                 <input
                   type="text"
                   required
-                  placeholder="Nombre completo"
+                  minLength={3}
+                  maxLength={200}
+                  autoComplete="name"
+                  aria-label="Nombre completo"
+                  placeholder="Nombre completo *"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-marca"
@@ -271,19 +317,72 @@ export default function CarritoPage() {
                 <input
                   type="tel"
                   required
-                  placeholder="Celular / WhatsApp (ej: 099 123 456)"
+                  pattern="(?:\D*\d){8,15}\D*"
+                  title="Escribí tu celular con al menos 8 números"
+                  maxLength={30}
+                  autoComplete="tel"
+                  aria-label="Celular o WhatsApp"
+                  placeholder="Celular / WhatsApp * (ej: 099 123 456)"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-marca"
                 />
-                <input
-                  type="text"
-                  required={zonaEnvio !== 'retiro'}
-                  placeholder="Dirección de entrega"
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-marca"
-                />
+                {zonaEnvio !== 'retiro' && (
+                  <input
+                    type="text"
+                    required
+                    minLength={5}
+                    maxLength={200}
+                    autoComplete="street-address"
+                    aria-label="Dirección de entrega"
+                    placeholder="Dirección de entrega *"
+                    value={direccion}
+                    onChange={(e) => setDireccion(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-marca"
+                  />
+                )}
+              </div>
+
+              {/* Cuenta: con sesión abierta se usa esa; si no, mail + contraseña */}
+              <div>
+                <label className="block text-sm font-semibold text-texto mb-2">Tu cuenta</label>
+                {sesion ? (
+                  <p className="text-sm text-gray-700 bg-fondo border border-gray-100 rounded-xl px-4 py-3">
+                    Comprás como <strong>{sesion}</strong>. El pedido queda guardado en{' '}
+                    <Link href="/cuenta" className="text-marca font-medium hover:underline">tu cuenta</Link>.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    <input
+                      type="email"
+                      required
+                      maxLength={254}
+                      autoComplete="email"
+                      aria-label="Mail"
+                      placeholder="Mail *"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-marca"
+                    />
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      maxLength={200}
+                      autoComplete="new-password"
+                      aria-label="Contraseña"
+                      placeholder="Contraseña * (mín. 8 caracteres)"
+                      value={clave}
+                      onChange={(e) => setClave(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-marca"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Al confirmar creamos tu cuenta con este mail y esta contraseña, para que sigas tus pedidos. ¿Ya tenés
+                      cuenta? Usá tu contraseña o{' '}
+                      <Link href="/login" className="text-marca font-medium hover:underline">iniciá sesión</Link>.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Selección de Envío */}

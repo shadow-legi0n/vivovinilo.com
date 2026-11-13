@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 import PageHeader from '../components/PageHeader';
-import EnConstruccion from '../components/EnConstruccion';
+import Cuenta from '../cuenta/Cuenta';
 
-export const metadata: Metadata = { title: 'Mi cuenta' };
+export const metadata: Metadata = { title: 'Iniciar sesión' };
 
-// TODO: falta definir el sistema de cuentas (por ejemplo Supabase Auth) antes de armar el formulario.
+// Misma pantalla que /cuenta: muestra el formulario de ingreso o, con sesión abierta, la cuenta.
 export default function LoginPage() {
   return (
     <main className="bg-fondo w-full">
-      <PageHeader titulo="Mi cuenta" />
-      <EnConstruccion texto="Las cuentas de usuario todavía no están disponibles. Mientras tanto, cualquier consulta la vemos por contacto." />
+      <PageHeader titulo="Mi cuenta" subtitulo="Tus datos y el estado de tus pedidos." />
+      <Cuenta />
     </main>
   );
 }

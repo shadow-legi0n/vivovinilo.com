@@ -39,7 +39,7 @@ export default function Navbar() {
               </span>
             )}
           </Link>
-          <Link href="/login" aria-label="Mi cuenta" className="hover:text-marca transition-colors">
+          <Link href="/cuenta" aria-label="Mi cuenta" className="hover:text-marca transition-colors">
             <User className="w-6 h-6" />
           </Link>
         </div>
