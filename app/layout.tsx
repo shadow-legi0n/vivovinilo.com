@@ -11,6 +11,15 @@ export const metadata: Metadata = {
   // Cada página define su título y acá se le agrega el nombre del sitio.
   title: { default: "Vivo Vinilo", template: "%s | Vivo Vinilo" },
   description: "Donde las ideas cobran vida",
+  // Base para las URLs absolutas del ícono y de la imagen que se ve al compartir el link.
+  metadataBase: new URL("https://www.vivovinilo.com"),
+  openGraph: {
+    title: "Vivo Vinilo",
+    description: "Donde las ideas cobran vida",
+    siteName: "Vivo Vinilo",
+    locale: "es_UY",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

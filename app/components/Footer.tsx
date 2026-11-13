@@ -12,10 +12,7 @@ export default function Footer() {
         {/* Columna 1: Logo y eslogan */}
         <div className="md:col-span-1">
           <Link href="/" className="flex flex-col gap-1 inline-block mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold tracking-tight">Vivo Vinilo</span>
-              <span className="text-marca text-xl font-bold">-|||-</span>
-            </div>
+            <img src="/logo.png" alt="Vivo Vinilo Lab & Studio" width={176} height={176} loading="lazy" className="w-44 h-44 rounded-2xl mb-3" />
             <span className="text-sm text-gray-400 italic">Donde las ideas cobran vida</span>
           </Link>
         </div>

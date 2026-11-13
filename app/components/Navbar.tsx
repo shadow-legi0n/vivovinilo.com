@@ -11,9 +11,14 @@ export default function Navbar() {
   return (
     <header className="bg-oscuro text-white w-full">
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between border-b border-gray-800">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-tight">Vivo Vinilo</span>
-          <span className="text-xs text-gray-400 hidden sm:block">Donde las ideas cobran vida</span>
+        <Link href="/" aria-label="Vivo Vinilo, inicio" className="flex items-center gap-3">
+          <img src="/logo-emblema.png" alt="" width={48} height={48} className="w-12 h-12 rounded-full shrink-0" />
+          <span className="flex flex-col leading-none">
+            <span className="text-xl sm:text-2xl font-extrabold tracking-tight uppercase whitespace-nowrap">
+              Vivo <span className="text-[#F0145A]">Vinilo</span>
+            </span>
+            <span className="text-[10px] tracking-[0.3em] text-[#D9A566] mt-1 hidden sm:block">LAB &amp; STUDIO</span>
+          </span>
         </Link>
 
         <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
