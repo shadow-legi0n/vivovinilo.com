@@ -5,7 +5,7 @@ import type { Producto } from '../lib/catalogo';
 
 export default function ProductCard({ producto }: { producto: Producto }) {
   return (
-    <article className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+    <article id={producto.id} className="scroll-mt-6 target:ring-2 target:ring-marca bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
       <Foto src={producto.imagen} alt={producto.nombre} className={`w-full ${producto.vertical ? 'aspect-[5/7]' : 'aspect-[4/3]'}`} />
       <div className="p-5 flex flex-col flex-1">
         <h3 className="font-semibold text-texto mb-1">{producto.nombre}</h3>

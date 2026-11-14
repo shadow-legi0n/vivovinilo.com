@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, ShoppingCart, User } from 'lucide-react';
+import { ShoppingCart, User } from 'lucide-react';
+import Buscador from './Buscador';
 import { useCart } from '../context/CartContext';
 import { navegacion } from '../lib/sitio';
 
@@ -21,14 +22,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
-          <input 
-            type="text" 
-            placeholder="Buscar productos, servicios o ideas..." 
-            className="w-full bg-zinc-900 text-white rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-marca"
-          />
-          <Search className="absolute right-3 top-2.5 w-4 h-4 text-gray-400" />
-        </div>
+        <Buscador className="hidden md:block flex-1 max-w-md mx-8" />
 
         <div className="flex items-center gap-6">
           <Link href="/carrito" aria-label="Carrito" className="relative hover:text-marca transition-colors">
@@ -43,6 +37,11 @@ export default function Navbar() {
             <User className="w-6 h-6" />
           </Link>
         </div>
+      </div>
+
+      {/* En celular el buscador va en su propia fila, debajo del logo */}
+      <div className="md:hidden px-4 py-3 border-b border-gray-800">
+        <Buscador />
       </div>
 
       <nav className="max-w-7xl mx-auto px-4 md:px-8">
