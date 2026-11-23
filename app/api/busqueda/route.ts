@@ -1,9 +1,11 @@
+import { connection } from 'next/server';
 import { obtenerCatalogo } from '../../lib/catalogo';
 import { armarEntradas } from '../../lib/busqueda';
 
-// Índice del buscador del navbar. Sale del catálogo en caché, así que se actualiza
-// solo cuando se edita un producto desde el panel.
+// Índice del buscador del navbar. Se arma en cada pedido (no al publicar) desde el
+// catálogo en caché, así un producto cargado en el panel aparece enseguida.
 export async function GET() {
+  await connection();
   try {
     return Response.json({ entradas: armarEntradas(await obtenerCatalogo()) });
   } catch (e) {
