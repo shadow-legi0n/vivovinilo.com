@@ -13,6 +13,8 @@ import type { NeonQueryFunction } from '@neondatabase/serverless';
 type Paso =
   // Agrega una foto a un producto que ya existe. "principal" la pone primera.
   | { tipo: 'foto'; producto: string; foto: string; principal?: boolean }
+  // Pone foto a una categoría, solo si todavía no tiene (no pisa una elegida en el panel).
+  | { tipo: 'categoria-foto'; categoria: string; foto: string }
   // Crea un producto nuevo si todavía no hay uno con ese id.
   | {
       tipo: 'producto';
@@ -23,6 +25,7 @@ type Paso =
       detalle: string;
       descripcion?: string;
       imagenes: string[];
+      vertical?: boolean; // la foto principal es vertical
     };
 
 interface Carga {
@@ -49,6 +52,43 @@ export const cargas: Carga[] = [
       },
     ],
   },
+  {
+    nombre: '2026-11-23-fotos-lote-2',
+    pasos: [
+      // Remeras: blancas (poliéster) y de color (algodón)
+      { tipo: 'foto', producto: 'remera-blanca', foto: '/productos/remera-candombe.jpg', principal: true },
+      { tipo: 'foto', producto: 'remera-blanca', foto: '/productos/remera-rock-uruguayo.jpg', principal: true },
+      { tipo: 'foto', producto: 'remera-color-frente', foto: '/productos/remera-carnaval-montevideo.jpg' },
+      { tipo: 'foto', producto: 'remera-color-frente', foto: '/productos/remera-las-llamadas.jpg' },
+      { tipo: 'foto', producto: 'remera-color-frente', foto: '/productos/remera-uruguay.jpg' },
+      // Chapas
+      { tipo: 'foto', producto: 'chapa-a5', foto: '/productos/chapas-spinetta-almendra.jpg' },
+      // Taza "Nuestra canción": segunda foto del producto del lote 1
+      { tipo: 'foto', producto: 'taza-cancion-qr', foto: '/productos/taza-nuestra-cancion.jpg' },
+      {
+        tipo: 'producto',
+        id: 'placa-cancion-qr',
+        categoria: 'personalizados',
+        nombre: 'Placa acrílica con foto y canción',
+        precio: null, // TODO: que los dueños pongan el precio desde el panel
+        detalle: 'Acrílico con base de madera grabada con sus nombres',
+        descripcion:
+          'Placa de acrílico con una foto, el nombre de la canción y un código QR para escucharla. La base de madera va grabada con los nombres.\n\nNos pasás la foto, la canción y los nombres y armamos el diseño.',
+        imagenes: ['/productos/placa-cancion-qr.jpg'],
+      },
+      {
+        tipo: 'producto',
+        id: 'taza-vinilo-adhesivo',
+        categoria: 'vinilo-dtf',
+        nombre: 'Taza con diseño en vinilo adhesivo',
+        precio: null, // TODO: que los dueños pongan el precio desde el panel
+        detalle: 'Taza blanca con el diseño que elijas en vinilo',
+        imagenes: ['/productos/taza-vinilo-supernatural.jpg'],
+        vertical: true,
+      },
+      { tipo: 'categoria-foto', categoria: 'vinilo-dtf', foto: '/productos/taza-vinilo-supernatural.jpg' },
+    ],
+  },
 ];
 
 export async function aplicarCargas(sql: NeonQueryFunction<false, false>) {
@@ -62,6 +102,9 @@ export async function aplicarCargas(sql: NeonQueryFunction<false, false>) {
   for (const carga of cargas) {
     if (hechas.has(carga.nombre)) continue;
     const consultas = carga.pasos.map((paso) => {
+      if (paso.tipo === 'categoria-foto') {
+        return sql`update categorias set img = ${paso.foto} where slug = ${paso.categoria} and img is null`;
+      }
       if (paso.tipo === 'foto') {
         const foto = JSON.stringify([paso.foto]);
         return paso.principal
@@ -69,9 +112,9 @@ export async function aplicarCargas(sql: NeonQueryFunction<false, false>) {
           : sql`update productos set imagenes = imagenes || ${foto}::jsonb where id = ${paso.producto} and not imagenes @> ${foto}::jsonb`;
       }
       return sql`
-        insert into productos (id, categoria, nombre, precio, detalle, descripcion, imagenes, orden)
+        insert into productos (id, categoria, nombre, precio, detalle, descripcion, imagenes, vertical, orden)
         select ${paso.id}, ${paso.categoria}, ${paso.nombre}, ${paso.precio}, ${paso.detalle}, ${paso.descripcion ?? ''},
-               ${JSON.stringify(paso.imagenes)}::jsonb, (select coalesce(max(orden), 0) + 1 from productos)
+               ${JSON.stringify(paso.imagenes)}::jsonb, ${Boolean(paso.vertical)}, (select coalesce(max(orden), 0) + 1 from productos)
         where exists (select 1 from categorias where slug = ${paso.categoria})
         on conflict (id) do nothing`;
     });
