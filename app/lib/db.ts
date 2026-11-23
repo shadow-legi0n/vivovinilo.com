@@ -5,6 +5,7 @@
 
 import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 import { categoriasIniciales, productosIniciales } from './semilla';
+import { aplicarCargas } from './cargas';
 
 export const hayBase = () => Boolean(process.env.DATABASE_URL);
 
@@ -97,6 +98,9 @@ async function prepararTablas(sql: NeonQueryFunction<false, false>) {
       ),
     ]);
   }
+
+  // Fotos y productos nuevos cargados desde el código (cada carga se aplica una sola vez).
+  await aplicarCargas(sql);
 }
 
 // Devuelve la conexión, preparando las tablas la primera vez. Sin DATABASE_URL devuelve null.
