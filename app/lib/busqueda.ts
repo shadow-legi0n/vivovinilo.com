@@ -1,7 +1,9 @@
 // Buscador del sitio. Todo lo que se puede encontrar se arma acá a partir del
-// catálogo y del menú, así un producto nuevo aparece en la búsqueda sin tocar nada más.
+// catálogo y del menú, así un producto cargado desde el panel aparece en la búsqueda
+// sin tocar nada más. El índice lo arma el servidor (/api/busqueda) y la búsqueda
+// corre en el navegador.
 
-import { categorias, productos } from './catalogo';
+import type { Catalogo } from './catalogo';
 import { navegacion } from './sitio';
 
 export interface Resultado {
@@ -12,7 +14,7 @@ export interface Resultado {
   imagen?: string;
 }
 
-interface Entrada extends Resultado {
+export interface Entrada extends Resultado {
   claves: string; // palabras extra por las que también se encuentra
 }
 
@@ -38,16 +40,17 @@ const sinonimos: Record<string, string> = {
   '3d-merchandising': 'llavero llaveros empresa marca impresión',
 };
 
-const entradas: Entrada[] = [
-  ...productos.map((p) => {
+export function armarEntradas({ categorias, productos }: Catalogo): Entrada[] {
+  return [
+  ...productos.filter((p) => p.visible).map((p) => {
     const categoria = categorias.find((c) => c.slug === p.categoria);
     return {
       tipo: 'Producto' as const,
       titulo: p.nombre,
       detalle: p.precio === null ? 'Precio a cotizar' : `${p.desde ? 'Desde ' : ''}$${p.precio}`,
-      href: `/lab/${p.categoria}#${p.id}`,
-      imagen: p.imagen,
-      claves: `${p.detalle} ${categoria?.nombre ?? ''} ${sinonimos[p.id] ?? ''}`,
+      href: `/lab/${p.categoria}/${p.id}`,
+      imagen: p.imagenes[0],
+      claves: `${p.detalle} ${p.descripcion} ${categoria?.nombre ?? ''} ${sinonimos[p.id] ?? ''}`,
     };
   }),
   ...categorias.map((c) => ({
@@ -68,7 +71,8 @@ const entradas: Entrada[] = [
     .filter((n) => n.href !== '/')
     .map((n) => ({ tipo: 'Página' as const, titulo: n.nombre, detalle: '', href: n.href, claves: '' })),
   { tipo: 'Página', titulo: 'Carrito', detalle: 'Tu compra', href: '/carrito', claves: 'pagar compra pedido' },
-];
+  ];
+}
 
 // Pasa a minúsculas y saca los tildes, para que "sublimacion" encuentre "Sublimación".
 const normalizar = (texto: string) =>
@@ -77,14 +81,18 @@ const normalizar = (texto: string) =>
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '');
 
-const indice = entradas.map((e) => ({
-  entrada: e,
-  titulo: normalizar(e.titulo),
-  todo: normalizar(`${e.titulo} ${e.detalle} ${e.claves} ${e.tipo}`),
-}));
+export type Indice = ReturnType<typeof armarIndice>;
+
+export function armarIndice(entradas: Entrada[]) {
+  return entradas.map((e) => ({
+    entrada: e,
+    titulo: normalizar(e.titulo),
+    todo: normalizar(`${e.titulo} ${e.detalle} ${e.claves} ${e.tipo}`),
+  }));
+}
 
 // Devuelve lo que contiene todas las palabras buscadas; primero lo que coincide en el título.
-export function buscar(consulta: string, maximo = 8): Resultado[] {
+export function buscar(indice: Indice, consulta: string, maximo = 8): Resultado[] {
   const palabras = normalizar(consulta).split(/\s+/).filter(Boolean);
   if (palabras.length === 0) return [];
 

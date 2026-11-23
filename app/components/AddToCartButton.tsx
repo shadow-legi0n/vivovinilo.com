@@ -16,7 +16,7 @@ export default function AddToCartButton({ producto, precio }: { producto: Produc
       precio,
       cantidad: 1,
       detalle: producto.detalle,
-      imagen: producto.imagen,
+      imagen: producto.imagenes[0],
     });
     setAgregado(true);
     setTimeout(() => setAgregado(false), 1500);

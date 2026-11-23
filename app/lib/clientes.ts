@@ -6,7 +6,7 @@
 
 import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { base } from './pedidos';
+import { base } from './db';
 
 const COOKIE = 'vv_cliente';
 const DURACION = 60 * 60 * 24 * 30; // 30 días, en segundos

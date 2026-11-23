@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { LogOut, RefreshCw } from 'lucide-react';
 import { IconoWhatsApp } from '../components/Redes';
 import type { EstadoPedido, Pedido } from '../lib/pedidos';
+import Catalogo from './Catalogo';
 
 const ESTADOS: Record<EstadoPedido, { nombre: string; color: string }> = {
   pendiente: { nombre: 'Pendiente de pago', color: 'bg-amber-100 text-amber-800' },
@@ -66,6 +67,8 @@ export default function Panel() {
   const [filtro, setFiltro] = useState<EstadoPedido | 'todos'>('todos');
   const [ocupado, setOcupado] = useState<number | null>(null);
   const [clave, setClave] = useState('');
+  const [seccion, setSeccion] = useState<'pedidos' | 'productos'>('pedidos');
+  const sesionVencida = useCallback(() => setVista('login'), []);
 
   // Aplica al estado lo que respondió el servidor.
   const aplicar = useCallback((r: Respuesta) => {
@@ -135,7 +138,7 @@ export default function Panel() {
     return (
       <section className="max-w-sm mx-auto px-4 py-24">
         <form onSubmit={entrar} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-4">
-          <h1 className="text-xl font-bold text-texto">Panel de pedidos</h1>
+          <h1 className="text-xl font-bold text-texto">Panel de Vivo Vinilo</h1>
           <div>
             <label htmlFor="clave" className="block text-sm font-semibold text-texto mb-1">Contraseña</label>
             <input
@@ -169,18 +172,37 @@ export default function Panel() {
 
   return (
     <section className="max-w-5xl mx-auto px-4 md:px-8 py-10">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-texto">Pedidos</h1>
-        <div className="flex gap-2">
-          <button onClick={cargar} className={`${boton} border border-gray-300 hover:border-oscuro text-texto inline-flex items-center gap-2`}>
-            <RefreshCw className="w-4 h-4" /> Actualizar
+      <nav aria-label="Secciones del panel" className="flex gap-2 mb-8 border-b border-gray-200">
+        {(['pedidos', 'productos'] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setSeccion(s)}
+            aria-current={seccion === s}
+            className={`px-5 py-3 -mb-px border-b-2 text-sm font-semibold transition-colors cursor-pointer ${
+              seccion === s ? 'border-marca text-marca' : 'border-transparent text-gray-500 hover:text-texto'
+            }`}
+          >
+            {s === 'pedidos' ? 'Pedidos' : 'Productos y fotos'}
           </button>
+        ))}
+      </nav>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h1 className="text-3xl font-bold text-texto">{seccion === 'pedidos' ? 'Pedidos' : 'Productos'}</h1>
+        <div className="flex gap-2">
+          {seccion === 'pedidos' && <button onClick={cargar} className={`${boton} border border-gray-300 hover:border-oscuro text-texto inline-flex items-center gap-2`}>
+            <RefreshCw className="w-4 h-4" /> Actualizar
+          </button>}
           <button onClick={salir} className={`${boton} border border-gray-300 hover:border-oscuro text-texto inline-flex items-center gap-2`}>
             <LogOut className="w-4 h-4" /> Salir
           </button>
         </div>
       </div>
 
+      {seccion === 'productos' ? (
+        <Catalogo onSesionVencida={sesionVencida} />
+      ) : (
+      <>
       <div className="flex flex-wrap gap-2 mb-6">
         <button onClick={() => setFiltro('todos')} className={`${boton} ${filtro === 'todos' ? 'bg-oscuro text-white' : 'bg-white border border-gray-200 text-texto'}`}>
           Todos ({pedidos.length})
@@ -304,6 +326,8 @@ export default function Panel() {
             );
           })}
         </div>
+      )}
+      </>
       )}
     </section>
   );

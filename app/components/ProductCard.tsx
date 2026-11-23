@@ -4,11 +4,20 @@ import Foto from './Foto';
 import type { Producto } from '../lib/catalogo';
 
 export default function ProductCard({ producto }: { producto: Producto }) {
+  const enlace = `/lab/${producto.categoria}/${producto.id}`;
   return (
     <article id={producto.id} className="scroll-mt-6 target:ring-2 target:ring-marca bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-      <Foto src={producto.imagen} alt={producto.nombre} className={`w-full ${producto.vertical ? 'aspect-[5/7]' : 'aspect-[4/3]'}`} />
+      <Link href={enlace} aria-label={`Ver ${producto.nombre}`} className="block overflow-hidden">
+        <Foto
+          src={producto.imagenes[0]}
+          alt={producto.nombre}
+          className={`w-full hover:scale-105 transition-transform duration-500 ${producto.vertical ? 'aspect-[5/7]' : 'aspect-[4/3]'}`}
+        />
+      </Link>
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="font-semibold text-texto mb-1">{producto.nombre}</h3>
+        <h3 className="font-semibold text-texto mb-1">
+          <Link href={enlace} className="hover:text-marca transition-colors">{producto.nombre}</Link>
+        </h3>
         <p className="text-xs text-gray-500 mb-3">{producto.detalle}</p>
         {producto.precio === null ? (
           <>

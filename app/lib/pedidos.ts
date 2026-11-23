@@ -3,8 +3,8 @@
 // La base es Postgres en Neon y se configura con DATABASE_URL en .env.local.
 // Sin esa variable el sitio sigue andando, pero los pedidos no se guardan.
 
-import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
-import { productos } from './catalogo';
+import { base } from './db';
+import { obtenerCatalogo } from './catalogo';
 import { calcularEnvio, ZONAS, type ZonaEnvio } from './envio';
 
 export const METODOS = ['mercadopago', 'transferencia', 'redes'] as const;
@@ -53,7 +53,7 @@ export function limpiarEmail(valor: unknown): string | null {
 // Arma el pedido a partir de lo que manda el navegador. Del navegador solo se toman
 // ids y cantidades: los precios y el envío salen del catálogo del servidor, porque
 // si viajaran desde el navegador cualquiera podría cambiarlos y pagar menos.
-export function validarPedido(datos: unknown): { error: string } | { pedido: NuevoPedido } {
+export async function validarPedido(datos: unknown): Promise<{ error: string } | { pedido: NuevoPedido }> {
   if (!datos || typeof datos !== 'object') return { error: 'Pedido inválido.' };
   const d = datos as Record<string, unknown>;
 
@@ -75,12 +75,13 @@ export function validarPedido(datos: unknown): { error: string } | { pedido: Nue
 
   if (!Array.isArray(d.items) || d.items.length === 0) return { error: 'El carrito está vacío.' };
 
+  const { productos } = await obtenerCatalogo();
   const items: ItemPedido[] = [];
   let subtotal = 0;
   for (const pedido of d.items as { id?: unknown; cantidad?: unknown }[]) {
     const producto = productos.find((p) => p.id === pedido?.id);
     const cantidad = Number(pedido?.cantidad);
-    if (!producto || producto.precio === null) {
+    if (!producto || !producto.visible || producto.precio === null) {
       return { error: 'Hay un producto en el carrito que ya no está disponible. Quitalo y volvé a intentar.' };
     }
     if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 99) return { error: 'Cantidad inválida.' };
@@ -92,68 +93,9 @@ export function validarPedido(datos: unknown): { error: string } | { pedido: Nue
   return { pedido: { nombre, email, telefono, direccion, entrega, metodoPago, items, subtotal, envio, total: subtotal + envio } };
 }
 
+export { hayBase } from './db';
+
 // --- Base de datos ---
-
-export const hayBase = () => Boolean(process.env.DATABASE_URL);
-
-let tablasListas: Promise<void> | null = null;
-
-// Crea o actualiza las tablas. Cada sentencia se puede repetir sin romper nada, así
-// no hay un paso manual de instalación ni de migración.
-async function prepararTablas(sql: NeonQueryFunction<false, false>) {
-  await sql`
-    create table if not exists pedidos (
-      id serial primary key,
-      creado_en timestamptz not null default now(),
-      estado text not null default 'pendiente',
-      nombre text not null,
-      telefono text not null,
-      direccion text not null default '',
-      entrega text not null,
-      metodo_pago text not null,
-      items jsonb not null,
-      subtotal integer not null,
-      envio integer not null,
-      total integer not null,
-      mp_pago_id text,
-      mp_estado text
-    )`;
-  await sql`
-    create table if not exists clientes (
-      id serial primary key,
-      creado_en timestamptz not null default now(),
-      email text not null unique,
-      clave_hash text not null,
-      nombre text not null default '',
-      telefono text not null default '',
-      direccion text not null default ''
-    )`;
-  // De cada sesión se guarda solo el hash del token: quien lea la base no puede entrar con eso.
-  await sql`
-    create table if not exists sesiones (
-      token_hash text primary key,
-      cliente_id integer not null references clientes(id) on delete cascade,
-      vence timestamptz not null
-    )`;
-  await sql`alter table pedidos add column if not exists email text not null default ''`;
-  await sql`alter table pedidos add column if not exists cliente_id integer references clientes(id) on delete set null`;
-  await sql`create index if not exists pedidos_cliente_id on pedidos (cliente_id)`;
-}
-
-// Devuelve la conexión, preparando las tablas la primera vez. Sin DATABASE_URL devuelve null.
-export async function base() {
-  const url = process.env.DATABASE_URL;
-  if (!url) return null;
-  const sql = neon(url);
-  tablasListas ??= prepararTablas(sql);
-  try {
-    await tablasListas;
-  } catch (e) {
-    tablasListas = null; // que el próximo intento vuelva a probar
-    throw e;
-  }
-  return sql;
-}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const aPedido = (f: any): Pedido => ({

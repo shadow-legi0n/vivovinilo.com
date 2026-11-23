@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import Foto from '../components/Foto';
 import { IconoWhatsApp } from '../components/Redes';
-import { productos } from '../lib/catalogo';
 import { sitio, linkWhatsApp, CLAVE_ULTIMO_PEDIDO } from '../lib/sitio';
 import { calcularEnvio, MONTO_ENVIO_GRATIS, type ZonaEnvio } from '../lib/envio';
 import { Trash2, Plus, Minus, ShieldCheck, Truck, CreditCard, ShoppingBag, CheckCircle, ExternalLink } from 'lucide-react';
 
 export default function CarritoPage() {
-  const { items, agregarAlCarrito, eliminarDelCarrito, actualizarCantidad, vaciarCarrito, subtotal } = useCart();
+  const { items, eliminarDelCarrito, actualizarCantidad, vaciarCarrito, subtotal } = useCart();
   const [zonaEnvio, setZonaEnvio] = useState<ZonaEnvio>('montevideo');
   const [metodoPago, setMetodoPago] = useState<'mercadopago' | 'transferencia' | 'redes'>('mercadopago');
   const [nombre, setNombre] = useState('');
@@ -57,15 +56,6 @@ export default function CarritoPage() {
 
   const totalFinal = subtotal + costoEnvio;
   const faltaParaEnvioGratis = Math.max(0, montoEnvioGratis - subtotal);
-
-  const cargarProductosDemo = () => {
-    productos
-      .filter((p) => p.precio !== null)
-      .slice(0, 3)
-      .forEach((p) =>
-        agregarAlCarrito({ id: p.id, nombre: p.nombre, precio: p.precio ?? 0, cantidad: 1, detalle: p.detalle, imagen: p.imagen })
-      );
-  };
 
   // Plan B, solo si el servidor todavía no tiene el token de Mercado Pago: el link de
   // pago no acepta el monto por la URL, así que se copia el total y el cliente lo pega.
@@ -213,17 +203,11 @@ export default function CarritoPage() {
           <div className="bg-white rounded-3xl p-10 text-center shadow-sm border border-gray-100 mb-16">
             <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-texto mb-2">Tu carrito está vacío</h2>
-            <p className="text-gray-500 mb-6">Agrega productos personalizados del LAB o carga artículos de prueba para ver cómo funciona el pago.</p>
+            <p className="text-gray-500 mb-6">Elegí productos del LAB para empezar tu pedido.</p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <button
-                onClick={cargarProductosDemo}
-                className="bg-marca hover:bg-marca-hover text-white px-6 py-3 rounded-full font-medium transition-colors shadow-md"
-              >
-                Cargar productos de prueba
-              </button>
               <Link
                 href="/lab"
-                className="border border-gray-300 hover:border-oscuro text-texto px-6 py-3 rounded-full font-medium transition-colors"
+                className="bg-marca hover:bg-marca-hover text-white px-6 py-3 rounded-full font-medium transition-colors shadow-md"
               >
                 Explorar catálogo
               </Link>

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# fotos subidas desde el panel en una copia local (en la web van a Vercel Blob)
+/public/subidas

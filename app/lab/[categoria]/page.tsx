@@ -4,29 +4,25 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import ProductCard from '../../components/ProductCard';
-import { categorias, getCategoria, getProductosPorCategoria } from '../../lib/catalogo';
+import { getCategoria, getProductosPorCategoria } from '../../lib/catalogo';
 
-// La página lee el slug de la URL antes de mostrar nada. Como todas las categorías
-// ya se generan en el build, no hace falta un estado de carga: se le avisa a Next.
+// La página se arma en cada visita con el catálogo en caché (no consulta la base cada
+// vez). No se genera al publicar: así un cambio hecho desde el panel se ve en la
+// primera visita y no se sirve nunca una copia vieja de la publicación.
 export const instant = false;
-
-// Le dice a Next qué categorías existen para generar cada página en el build.
-export function generateStaticParams() {
-  return categorias.map((c) => ({ categoria: c.slug }));
-}
 
 export async function generateMetadata({ params }: PageProps<'/lab/[categoria]'>): Promise<Metadata> {
   const { categoria: slug } = await params;
-  const categoria = getCategoria(slug);
+  const categoria = await getCategoria(slug);
   return categoria ? { title: categoria.nombre, description: categoria.descripcion } : {};
 }
 
 export default async function CategoriaPage({ params }: PageProps<'/lab/[categoria]'>) {
   const { categoria: slug } = await params;
-  const categoria = getCategoria(slug);
+  const categoria = await getCategoria(slug);
   if (!categoria) notFound();
 
-  const productos = getProductosPorCategoria(slug);
+  const productos = await getProductosPorCategoria(slug);
 
   return (
     <main className="bg-fondo w-full">

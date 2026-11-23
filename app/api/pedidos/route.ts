@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Pedido inválido.' }, { status: 400 });
   }
 
-  const resultado = validarPedido(datos);
+  const resultado = await validarPedido(datos);
   if ('error' in resultado) return Response.json({ error: resultado.error }, { status: 400 });
   const { pedido } = resultado;
   const clave = (datos as Record<string, unknown>).clave;

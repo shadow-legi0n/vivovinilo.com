@@ -1,22 +1,36 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import Foto from './Foto';
-import { buscar } from '../lib/busqueda';
+import { armarIndice, buscar, type Entrada } from '../lib/busqueda';
 
-// Buscador con resultados al instante. Busca en el catálogo que ya viene con la página,
-// así que no hace ningún pedido al servidor mientras se escribe.
+// Buscador con resultados al instante. La primera vez que se usa pide el índice al
+// servidor (un solo pedido); después busca en el navegador mientras se escribe.
 export default function Buscador({ className = '' }: { className?: string }) {
   const router = useRouter();
   const idLista = useId();
   const [consulta, setConsulta] = useState('');
   const [abierto, setAbierto] = useState(false);
   const [marcado, setMarcado] = useState(0);
+  const [entradas, setEntradas] = useState<Entrada[] | null>(null);
+  const [pidiendo, setPidiendo] = useState(false);
 
+  const pedirIndice = () => {
+    if (entradas || pidiendo) return;
+    setPidiendo(true);
+    fetch('/api/busqueda')
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((datos: { entradas: Entrada[] }) => setEntradas(datos.entradas))
+      .catch(() => {}) // sin conexión: se reintenta la próxima vez que se toque el campo
+      .finally(() => setPidiendo(false));
+  };
+
+  const indice = useMemo(() => armarIndice(entradas ?? []), [entradas]);
   // Los resultados se calculan al dibujar: no hace falta guardarlos en el estado.
-  const resultados = buscar(consulta);
+  const resultados = buscar(indice, consulta);
+  const cargando = entradas === null;
   const mostrar = abierto && consulta.trim() !== '';
 
   const ir = (href: string) => {
@@ -56,11 +70,15 @@ export default function Buscador({ className = '' }: { className?: string }) {
         placeholder="Buscar productos, servicios o ideas..."
         value={consulta}
         onChange={(e) => {
+          pedirIndice();
           setConsulta(e.target.value);
           setMarcado(0);
           setAbierto(true);
         }}
-        onFocus={() => setAbierto(true)}
+        onFocus={() => {
+          pedirIndice();
+          setAbierto(true);
+        }}
         onBlur={() => setAbierto(false)}
         onKeyDown={alTeclear}
         className="w-full bg-zinc-900 text-white rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-marca [&::-webkit-search-cancel-button]:hidden"
@@ -77,7 +95,9 @@ export default function Buscador({ className = '' }: { className?: string }) {
           onMouseDown={(e) => e.preventDefault()}
           className="absolute left-0 right-0 top-full mt-2 bg-white text-texto rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
         >
-          {resultados.length === 0 ? (
+          {cargando ? (
+            <li className="px-4 py-4 text-sm text-gray-500">Buscando...</li>
+          ) : resultados.length === 0 ? (
             <li className="px-4 py-4 text-sm text-gray-500">
               No encontramos nada para &quot;{consulta.trim()}&quot;.{' '}
               <button type="button" onClick={() => ir('/contacto')} className="font-semibold text-marca hover:underline cursor-pointer">
