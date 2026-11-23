@@ -81,8 +81,11 @@ function Fotos({
     actuales.current = imagenes;
   }, [imagenes]);
 
+  const unica = maximo === 1; // categorías: una sola foto, que se reemplaza al subir otra
+
   const agregar = async (archivos: FileList | null) => {
     if (!archivos || archivos.length === 0) return;
+    if (unica) actuales.current = []; // "Cambiar foto": la nueva reemplaza a la anterior
     const lugar = maximo - actuales.current.length;
     const elegidos = Array.from(archivos).slice(0, Math.max(0, lugar));
     if (elegidos.length < archivos.length) onError(`Se pueden cargar hasta ${maximo} foto(s); el resto no se subió.`);
@@ -105,6 +108,64 @@ function Fotos({
     [lista[i], lista[j]] = [lista[j], lista[i]];
     onCambio(lista);
   };
+
+  const selector = (
+    <input
+      ref={entrada}
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      multiple={!unica}
+      className="hidden"
+      onChange={(e) => agregar(e.target.files)}
+    />
+  );
+
+  if (unica) {
+    const actual = imagenes[0];
+    return (
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="w-full max-w-xs aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+          {subiendo > 0 ? (
+            <div className="w-full h-full flex items-center justify-center text-sm text-gray-500 animate-pulse">Subiendo...</div>
+          ) : actual ? (
+            <Foto src={actual} alt="Foto de la categoría" className="w-full h-full" />
+          ) : (
+            <button
+              type="button"
+              disabled={!habilitado}
+              onClick={() => entrada.current?.click()}
+              className="w-full h-full flex flex-col items-center justify-center gap-2 text-sm text-gray-500 hover:text-marca transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              <ImagePlus className="w-8 h-8" />
+              Sin foto: tocá para elegir una
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap sm:flex-col gap-2">
+          <button
+            type="button"
+            disabled={!habilitado || subiendo > 0}
+            onClick={() => entrada.current?.click()}
+            className={`${boton} bg-oscuro hover:bg-black text-white inline-flex items-center gap-2`}
+          >
+            <ImagePlus className="w-4 h-4" /> {actual ? 'Cambiar foto' : 'Elegir foto'}
+          </button>
+          {actual && (
+            <button
+              type="button"
+              disabled={subiendo > 0}
+              onClick={() => onCambio([])}
+              className={`${boton} border border-gray-300 hover:border-red-400 hover:text-red-600 text-texto inline-flex items-center gap-2`}
+            >
+              <X className="w-4 h-4" /> Quitar foto
+            </button>
+          )}
+          <p className="text-xs text-gray-500 max-w-[220px]">Es la foto de la tarjeta de la categoría. El cambio se ve en la web al tocar &quot;Guardar&quot;.</p>
+        </div>
+        {selector}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -145,15 +206,8 @@ function Fotos({
           </button>
         )}
       </div>
-      <input
-        ref={entrada}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        multiple={maximo > 1}
-        className="hidden"
-        onChange={(e) => agregar(e.target.files)}
-      />
-      {maximo > 1 && <p className="text-xs text-gray-500 mt-2">La primera foto es la que se ve en la tarjeta. Usá las flechas para cambiar el orden.</p>}
+      {selector}
+      <p className="text-xs text-gray-500 mt-2">La primera foto es la que se ve en la tarjeta. Usá las flechas para cambiar el orden y la X para quitar una. Los cambios se ven en la web al tocar &quot;Guardar&quot;.</p>
     </div>
   );
 }
@@ -340,7 +394,7 @@ function EditorCategoria({
         <h2 className="text-xl font-bold text-texto">{inicial ? 'Editar categoría' : 'Nueva categoría'}</h2>
         <button type="button" onClick={onCancelar} className={`${boton} border border-gray-300 hover:border-oscuro text-texto`}>Volver</button>
       </div>
-      <div className="max-w-[160px]">
+      <div>
         <label className={etiqueta}>Foto</label>
         <Fotos imagenes={img} maximo={1} habilitado={fotos} onCambio={setImg} onError={setError} />
       </div>
